@@ -12,45 +12,39 @@ def generate_noise(__original: list, __count: int, __noises: list):
 
 
 if __name__ == "__main__":
-    SIZE = 10
+    N = 36
+    H = 30
+    M = 5
 
-    NOISES = [0, 10, 20, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100]
-    NOISE_COUNT = 10
+    ALPHA = 1
+    BETA = 1
+    D = 0.01
 
-    learnShapesFiles = [
-        "./learnShape/D.png",
-        "./learnShape/H.png",
-        "./learnShape/X.png"
+    learnShapesFiles = ["./patterns/pattern" + str(i) + ".png" for i in range(1, 6)]
+    learnShapesY = [
+        [1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1]
     ]
 
-    symbols = ["D", "H", "X"]
-
     testShapesFiles = []
-    for symbol in symbols:
-        for noise in NOISES:
-            for i in range(0, NOISE_COUNT):
-                testShapesFiles.append("./testShape/" + str(symbol) + "_" + str(noise) + "_" + str(i) + ".png")
+    teachShapes = []
 
-    generate_noise(learnShapesFiles, NOISE_COUNT, NOISES)
-
-    shapes = []
     for fileName in learnShapesFiles:
         shape = imp.parse_image_to_shape(fileName)
-        if len(shape) == SIZE ** 2:
-            print("FIND SHAPE = \"" + fileName + "\"")
-            shapes.append(shape)
-        else:
-            print("FILE IS NOT SHAPE = \"" + fileName + "\"")
-    builder = nlb.NeyronLayerBuilder(SIZE ** 2)
-    print(len(shapes))
-    for shape in shapes:
-        builder.teach(shape)
+        teachShapes.append(shape)
+    builder = nlb.NeyronLayerBuilder(N, H, M)
+    builder.randomInit(-1, 1)
 
-    layer = builder.build()
+    for i in range(0, len(teachShapes)):
+        builder.teach(teachShapes[i], learnShapesY[i], ALPHA, BETA, D)
 
-    for testFile in testShapesFiles:
-        print(testFile)
-        result = layer.test_shape(imp.parse_image_to_shape(testFile))
-        out = "result/" + testFile.rsplit(".")[1].split("/")[-1] + "Res.png"
-        imp.from_shape_to_image(result, out, SIZE)
-        
+    layerNetwork = builder.build()
+
+    for i in range(0, 4):
+        print(layerNetwork.test_shape(imp.parse_image_to_shape("./test_images/test" + str(i) + ".png")))
+
+
+

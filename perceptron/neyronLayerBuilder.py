@@ -1,6 +1,5 @@
 import random as rnd
 
-from perceptron.hideLayerNeyron import HideLayerNeyron
 from perceptron.neyron import Neyron
 from perceptron.neyronLayer import NeyronLayer
 
@@ -30,30 +29,59 @@ class NeyronLayerBuilder:
         self.__HideRestriction = [rnd.uniform(__start, __stop) for _ in range(0, self.__h_size)]
         self.__OutRestriction = [rnd.uniform(__start, __stop) for _ in range(0, self.__m_size)]
 
-        self.__hideNeyrons = [HideLayerNeyron(self.__HideMatrix[i], self.__HideRestriction[i]) for i in
-                          range(0, self.__h_size)]
-        self.__outNeyrons = [Neyron(self.__HideMatrix[i], self.__HideRestriction[i]) for i in range(0, self.__m_size)]
+        hide_t = list(zip(*self.__HideMatrix))
+        self.__hideNeyrons = [Neyron(list(hide_t[i]), self.__HideRestriction[i]) for i in
+                              range(0, self.__h_size)]
+        out_t = list(zip(*self.__OutMatrix))
+        self.__outNeyrons = [Neyron(list(out_t[i]), self.__OutRestriction[i]) for i in range(0, self.__m_size)]
 
-    def teach(self, __shape: list, __out: list):
-        hideOut = []
-        for hideNeyron in self.__hideNeyrons:
-            hideOut.append(hideNeyron.test_shape(__shape))
-        outOut = []
-        for outNeyron in self.__outNeyrons:
-            outOut.append(outNeyron.test_shape(__shape))
+    def teach(self, __shape: list, __out: list, __alpha: float, __beta: float, __D: float):
+        flagStart = True
+        MAX_DK = 0
+        while (MAX_DK >= __D) or flagStart:
+            MAX_DK = 0
+            flagStart = False
+            hideOut = []
+            for hideNeyron in self.__hideNeyrons:
+                hideOut.append(hideNeyron.test_shape(__shape))
+            outOut = []
+            for outNeyron in self.__outNeyrons:
+                outOut.append(outNeyron.test_shape(hideOut))
 
+            # ---------------OUT-Layer---------------------
+            for j in range(0, len(self.__OutMatrix)):
+                for k in range(0, len(self.__OutMatrix[j])):
+                    yk = outOut[k]
+                    dk = __out[k] - yk
+                    MAX_DK = max(MAX_DK, abs(dk))
+                    temp = __alpha * yk * (1 - yk) * dk
+                    self.__OutMatrix[j][k] += temp * hideOut[j]
+                    if j == 0:
+                        self.__OutRestriction[k] += temp
 
+            # ---------------HIDE-Layer---------------
+            for i in range(0, len(self.__HideMatrix)):
+                for j in range(0, len(self.__HideMatrix[i])):
+                    ej = 0
+                    for k in range(0, len(outOut)):
+                        yk = outOut[k]
+                        dk = __out[k] - yk
+                        MAX_DK = max(MAX_DK,(dk))
+                        proizv = yk * (1 - yk)
+                        ej += dk * proizv * self.__OutMatrix[j][k]
+                    gj = hideOut[j]
+                    temp = __beta * gj * (1 - gj) * ej
+                    self.__HideMatrix[i][j] += temp * __shape[i]
+                    if i == 0:
+                        self.__HideRestriction[j] += temp
 
-                if i == j:
-                    self.__WMatrix[i][j] = 0
-                else:
-                    self.__WMatrix[i][j] += __shape[i] * __shape[j]
+            out_t = list(zip(*self.__OutMatrix))
+            for i in range(0, self.__m_size):
+                self.__outNeyrons[i].refresh(list(out_t[i]), self.__OutRestriction[i])
+            hide_t = list(zip(*self.__HideMatrix))
+            for i in range(0, self.__h_size):
+                self.__hideNeyrons[i].refresh(list(hide_t[i]), self.__HideRestriction[i])
+        print("TEACH WAS COMPLETE")
 
     def build(self) -> NeyronLayer:
-        return NeyronLayer([self.__WMatrix[i] for i in range(0, len(self.__WMatrix))])
-
-    def print_current_weight_map(self):
-        print("---------------------------------------")
-        for i in range(0, len(self.__WMatrix)):
-            print(self.__WMatrix[i])
-        print("---------------------------------------")
+        return NeyronLayer(self.__hideNeyrons, self.__outNeyrons)
