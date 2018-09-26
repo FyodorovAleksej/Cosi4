@@ -38,6 +38,7 @@ class NeyronLayerBuilder:
     def teach(self, __shape: list, __out: list, __alpha: float, __beta: float, __D: float):
         flagStart = True
         MAX_DK = 0
+        countTeach = 0
         while (MAX_DK >= __D) or flagStart:
             MAX_DK = 0
             flagStart = False
@@ -66,7 +67,7 @@ class NeyronLayerBuilder:
                     for k in range(0, len(outOut)):
                         yk = outOut[k]
                         dk = __out[k] - yk
-                        MAX_DK = max(MAX_DK,(dk))
+                        MAX_DK = max(MAX_DK, abs(dk))
                         proizv = yk * (1 - yk)
                         ej += dk * proizv * self.__OutMatrix[j][k]
                     gj = hideOut[j]
@@ -81,7 +82,8 @@ class NeyronLayerBuilder:
             hide_t = list(zip(*self.__HideMatrix))
             for i in range(0, self.__h_size):
                 self.__hideNeyrons[i].refresh(list(hide_t[i]), self.__HideRestriction[i])
-        print("TEACH WAS COMPLETE")
+            countTeach += 1
+        print("TEACH WAS COMPLETE = " + str(countTeach))
 
     def build(self) -> NeyronLayer:
         return NeyronLayer(self.__hideNeyrons, self.__outNeyrons)
