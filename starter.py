@@ -16,12 +16,12 @@ def generate_noise(__original: list, __count: int, __noises: list):
 
 if __name__ == "__main__":
     N = 36
-    H = 30
+    H = 10
     M = 5
 
-    ALPHA = 1
-    BETA = 1
-    D = 0.01
+    ALPHA = 0.5
+    BETA = 0.5
+    D = 0.008
 
     learnShapesFiles = ["./patterns/pattern" + str(i) + ".png" for i in range(1, 6)]
     noises = [5, 10, 15]

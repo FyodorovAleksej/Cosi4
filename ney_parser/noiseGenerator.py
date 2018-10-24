@@ -1,5 +1,5 @@
 import random as rnd
-
+from ney_parser.imageParser import transform
 from PIL import Image, ImageDraw
 
 PARSE1 = (0, 0, 0)
@@ -36,9 +36,9 @@ def gen_noise(__input_image: str, __output_image: str, __percent: int):
         if index not in used:
             choice = bool(rnd.getrandbits(1))
             if choice:
-                if pix[index] == PARSE1:
+                if transform(pix[index]) == PARSE1:
                     draw.point(index, PARSE_1)
-                if pix[index] == PARSE_1:
+                if transform(pix[index]) == PARSE_1:
                     draw.point(index, PARSE1)
                 used.append(index)
         cur += 1

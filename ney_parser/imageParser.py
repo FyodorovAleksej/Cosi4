@@ -4,6 +4,10 @@ PARSE1 = (0, 0, 0)
 PARSE_1 = (255, 255, 255)
 
 
+def transform(__a):
+    return tuple([__a[i] for i in range(0, 3)])
+
+
 def parse_image_to_shape(__input_file: str) -> list:
     image = Image.open(__input_file)  # Открываем изображение.
     width = image.size[0]  # Определяем ширину.
@@ -12,9 +16,9 @@ def parse_image_to_shape(__input_file: str) -> list:
     result = []
     for i in range(0, height):
         for j in range(0, width):
-            if pix[j, i] == PARSE1:
+            if transform(pix[j, i]) == PARSE1:
                 result.append(1)
-            elif pix[j, i] == PARSE_1:
+            elif transform(pix[j, i]) == PARSE_1:
                 result.append(-1)
     return result
 
