@@ -44,8 +44,9 @@ if __name__ == "__main__":
     builder = nlb.NeyronLayerBuilder(N, H, M)
     builder.randomInit(-1, 1)
 
-    for i in range(0, len(teachShapes)):
-        builder.teach(teachShapes[i], learnShapesY[i], ALPHA, BETA, D)
+    for _ in range(5):
+        for i in range(0, len(teachShapes)):
+            builder.teach(teachShapes[i], learnShapesY[i], ALPHA, BETA, D)
 
     layerNetwork = builder.build()
 
